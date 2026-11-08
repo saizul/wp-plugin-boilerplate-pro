@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<ruleset name="WP Plugin Boilerplate Pro">
+    <description>WordPress Coding Standards for WP Plugin Boilerplate Pro.</description>
+
+    <file>.</file>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/dist/*</exclude-pattern>
+    <exclude-pattern>*/.phpunit.cache/*</exclude-pattern>
+
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+    <arg name="parallel" value="8"/>
+
+    <config name="minimum_wp_version" value="6.2"/>
+    <config name="testVersion" value="8.1-"/>
+
+    <rule ref="WordPress">
+        <!-- PSR-4 file names (src/Plugin.php) instead of class-plugin.php. -->
+        <exclude name="WordPress.Files.FileName"/>
+        <!-- Short array syntax is not used, but modern PHP features are welcome. -->
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+        <exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames"/>
+        <!-- Docblocks are written where they add information. -->
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag"/>
+        <exclude name="Generic.Commenting.DocComment.MissingShort"/>
+        <exclude name="Universal.Operators.DisallowShortTernary"/>
+        <!-- camelCase methods are used in classes that do not extend WordPress classes. -->
+        <exclude name="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid"/>
+        <!-- Exception messages are developer-facing, never printed to visitors. -->
+        <exclude name="WordPress.Security.EscapeOutput.ExceptionNotEscaped"/>
+        <exclude name="Squiz.Commenting.VariableComment.MissingVar"/>
+        <exclude name="Squiz.Commenting.FunctionCommentThrowTag.WrongNumber"/>
+    </rule>
+    <rule ref="PHPCompatibilityWP"/>
+
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="wp-plugin-boilerplate-pro"/>
+            </property>
+        </properties>
+    </rule>
+
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="SaizulAmin\PluginBoilerplate"/>
+                <element value="wppbp"/>
+                <element value="WPPBP"/>
+            </property>
+        </properties>
+    </rule>
+
+    <rule ref="Squiz.Commenting">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="Squiz.Commenting.ClassComment">
+        <exclude-pattern>*/bin/*</exclude-pattern>
+    </rule>
+
+    <!-- Tests and tooling: allow several classes per file and non-WordPress helpers. -->
+    <rule ref="Generic.Files.OneObjectStructurePerFile">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.Security.EscapeOutput">
+        <exclude-pattern>*/bin/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.WP.AlternativeFunctions">
+        <exclude-pattern>*/bin/*</exclude-pattern>
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.NamingConventions.ValidFunctionName">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.PHP.DevelopmentFunctions">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.PHP.DiscouragedPHPFunctions">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+        <exclude-pattern>*/bin/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.Security.ValidatedSanitizedInput">
+        <exclude-pattern>*/bin/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.PHP.NoSilencedErrors">
+        <exclude-pattern>*/bin/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.WP.GlobalVariablesOverride">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+        <exclude-pattern>*/bin/*</exclude-pattern>
+        <exclude-pattern>*/uninstall.php</exclude-pattern>
+    </rule>
+</ruleset>

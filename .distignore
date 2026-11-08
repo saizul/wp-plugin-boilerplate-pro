@@ -1,0 +1,25 @@
+# Files and folders left out of the release zip (used by bin/build-zip.sh).
+.git
+.github
+.gitattributes
+.gitignore
+.distignore
+.editorconfig
+.phpunit.cache
+.phpunit.result.cache
+.idea
+.vscode
+.DS_Store
+bin
+dist
+build
+tests
+vendor
+node_modules
+CONTRIBUTING.md
+README.md
+CHANGELOG.md
+composer.json
+composer.lock
+phpcs.xml.dist
+phpunit.xml.dist

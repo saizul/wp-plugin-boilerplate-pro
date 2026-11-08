@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: composer
+          coverage: none
+
+      - name: Check that the tag matches the plugin version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          FILE_VERSION="$(grep -h -m1 -E '^ \* Version:' ./*.php | head -n1 | sed -E 's/^ \* Version:[[:space:]]*//' | tr -d '[:space:]')"
+          CONST_VERSION="$(grep -h -m1 -E "define\( '[A-Z_]+_VERSION'" ./*.php | head -n1 | sed -E "s/.*, '([^']+)'.*/\1/")"
+          STABLE_TAG="$(grep -m1 -E '^Stable tag:' readme.txt | sed -E 's/^Stable tag:[[:space:]]*//' | tr -d '[:space:]')"
+          echo "tag=$TAG header=$FILE_VERSION constant=$CONST_VERSION readme=$STABLE_TAG"
+          [ "$TAG" = "$FILE_VERSION" ] && [ "$TAG" = "$CONST_VERSION" ] && [ "$TAG" = "$STABLE_TAG" ] || {
+            echo "::error::Tag, plugin header, version constant and readme.txt Stable tag must match."
+            exit 1
+          }
+
+      - name: Lint and test before packaging
+        run: |
+          find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l > /dev/null
+          composer install --no-interaction --prefer-dist --no-progress
+          vendor/bin/phpunit
+
+      - name: Build installable zip
+        run: |
+          rm -rf vendor
+          bash bin/build-zip.sh
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin-zip
+          path: dist/*.zip
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          generate_release_notes: true
