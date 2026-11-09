@@ -1,6 +1,6 @@
 <?php
 /**
- * Shortcode services.
+ * Shortcode and block services.
  *
  * @package SaizulAmin\PluginBoilerplate
  */
@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace SaizulAmin\PluginBoilerplate\Providers;
 
+use SaizulAmin\PluginBoilerplate\Blocks\ItemsBlock;
 use SaizulAmin\PluginBoilerplate\Container\Container;
 use SaizulAmin\PluginBoilerplate\Shortcodes\ItemsShortcode;
 
@@ -17,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Registers shortcodes.
+ * Registers shortcodes and the dynamic items block.
  */
 class ShortcodeProvider implements ServiceProvider {
 
@@ -28,6 +29,7 @@ class ShortcodeProvider implements ServiceProvider {
 	 */
 	public function register( Container $container ): void {
 		$container->singleton( ItemsShortcode::class );
+		$container->singleton( ItemsBlock::class );
 	}
 
 	/**
@@ -37,5 +39,6 @@ class ShortcodeProvider implements ServiceProvider {
 	 */
 	public function boot( Container $container ): void {
 		$container->get( ItemsShortcode::class )->hook();
+		$container->get( ItemsBlock::class )->hook();
 	}
 }
