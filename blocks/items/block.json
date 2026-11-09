@@ -1,0 +1,21 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "wp-plugin-boilerplate-pro/items",
+	"title": "Items",
+	"category": "widgets",
+	"icon": "list-view",
+	"description": "Lists published items. Rendered on the server, so the output always matches the shortcode.",
+	"keywords": [ "items", "list", "wppbp" ],
+	"textdomain": "wp-plugin-boilerplate-pro",
+	"attributes": {
+		"count": { "type": "integer" },
+		"layout": { "type": "string", "enum": [ "list", "grid" ] },
+		"search": { "type": "string", "default": "" }
+	},
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	},
+	"editorScript": "file:./editor.js"
+}

@@ -11,7 +11,7 @@ namespace SaizulAmin\PluginBoilerplate\Shortcodes;
 
 use SaizulAmin\PluginBoilerplate\PostTypes\ItemPostType;
 use SaizulAmin\PluginBoilerplate\Settings\Repository;
-use SaizulAmin\PluginBoilerplate\Support\Sanitizer;
+use SaizulAmin\PluginBoilerplate\Support\ItemsArgs;
 use WP_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -65,11 +65,7 @@ class ItemsShortcode {
 			self::TAG
 		);
 
-		return array(
-			'count'  => Sanitizer::int( $atts['count'], 1, 100, 10 ),
-			'layout' => Sanitizer::enum( $atts['layout'], \SaizulAmin\PluginBoilerplate\Settings\Schema::LAYOUTS, 'list' ),
-			'search' => Sanitizer::text( $atts['search'] ),
-		);
+		return ItemsArgs::normalize( $atts['count'], $atts['layout'], $atts['search'] );
 	}
 
 	/**
@@ -82,7 +78,15 @@ class ItemsShortcode {
 			return '';
 		}
 
-		$args  = $this->parse_atts( $atts );
+		return $this->render_list( $this->parse_atts( $atts ) );
+	}
+
+	/**
+	 * Render the item list for already-normalised arguments (shared with the block).
+	 *
+	 * @param array{count: int, layout: string, search: string} $args Normalised arguments.
+	 */
+	public function render_list( array $args ): string {
 		$query = new WP_Query(
 			array(
 				'post_type'      => ItemPostType::POST_TYPE,

@@ -4,6 +4,12 @@ All notable changes are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- `wp-plugin-boilerplate-pro/items` Gutenberg block, registered from `blocks/items/block.json`. It is dynamic (server-rendered, no build step) and shares its list markup with the `[wppbp_items]` shortcode.
+- `Support\ItemsArgs`, a pure normaliser used by both the shortcode and the block, with unit tests.
+
 ## [1.0.0] - 2026-11-08
 
 ### Added

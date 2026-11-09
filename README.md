@@ -20,6 +20,7 @@ Built by [Saizul Amin](https://saizul.com).
 | Settings page | `src/Admin/SettingsPage.php`, `src/Settings/` | Settings API, schema-driven sanitising, nonce-protected reset action |
 | REST API | `src/Rest/ItemsController.php` | `permission_callback` on every route, argument validation, JSON schema |
 | Shortcode | `src/Shortcodes/ItemsShortcode.php` | `[wppbp_items count="5" layout="grid"]`, sanitised attributes, escaped output |
+| Block | `src/Blocks/ItemsBlock.php`, `blocks/items/` | Dynamic block from `block.json`, PHP `render_callback`, editor script without a build step |
 | Custom post type | `src/PostTypes/ItemPostType.php` | REST enabled, registered meta with sanitiser and auth callback |
 | WP-CLI | `src/Cli/ItemsCommand.php` | `wp wppbp list`, `create`, `cleanup`, `settings` |
 | Cron | `src/Cron/CleanupTask.php` | Self-healing schedule, cleared on deactivation |
@@ -39,6 +40,7 @@ wp-plugin-boilerplate-pro/
 ├── composer.json
 ├── readme.txt                      WordPress.org style readme
 ├── assets/css/admin.css
+├── blocks/items/                   block.json, editor.js, editor.asset.php
 ├── bin/
 │   ├── rename.php                  CLI: start a new plugin from this one
 │   ├── Renamer.php                 pure PHP renamer (tested)
@@ -53,13 +55,14 @@ wp-plugin-boilerplate-pro/
 │   ├── Settings/                   Schema (pure), Repository (get_option)
 │   ├── Rest/ItemsController.php
 │   ├── Shortcodes/ItemsShortcode.php
+│   ├── Blocks/ItemsBlock.php       dynamic block, registered from blocks/items/block.json
 │   ├── PostTypes/ItemPostType.php
 │   ├── Cli/ItemsCommand.php
 │   ├── Cron/CleanupTask.php
-│   └── Support/Sanitizer.php       pure sanitising helpers
+│   └── Support/                    Sanitizer, ItemsArgs (pure helpers)
 ├── tests/
 │   ├── bootstrap.php               no WordPress required
-│   └── Unit/                       ContainerTest, SanitizerTest, SchemaTest, RenamerTest
+│   └── Unit/                       ContainerTest, SanitizerTest, ItemsArgsTest, SchemaTest, RenamerTest
 ├── phpunit.xml.dist
 ├── phpcs.xml.dist
 └── .github/workflows/              ci.yml, release.yml
@@ -131,6 +134,15 @@ class ItemsShortcode {
     public function __construct( private Repository $settings ) {}   // Repository is injected
 }
 ```
+
+## Block
+
+`blocks/items/block.json` is the single source of truth for the block name and attributes; `ItemsBlock`
+passes it to `register_block_type()` with a PHP `render_callback`, so the front end always renders on the
+server and `save()` returns `null`. The editor script (`editor.js`) uses the `wp.*` globals and
+`ServerSideRender`, so there is nothing to compile; `editor.asset.php` lists its script dependencies.
+Attribute rules (count 1-100, layout from the settings schema) live in `Support\ItemsArgs`, shared with
+the shortcode and covered by unit tests.
 
 ## Security patterns
 
