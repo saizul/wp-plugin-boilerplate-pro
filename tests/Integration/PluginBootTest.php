@@ -21,6 +21,17 @@ use WP_UnitTestCase;
  */
 final class PluginBootTest extends WP_UnitTestCase {
 
+	/**
+	 * The test suite resets registered meta keys between tests, so make sure the
+	 * post type and its meta are registered before each test.
+	 */
+	public function set_up(): void {
+		parent::set_up();
+		if ( ! registered_meta_key_exists( 'post', ItemPostType::META_URL, ItemPostType::POST_TYPE ) ) {
+			( new ItemPostType() )->register();
+		}
+	}
+
 	public function test_post_type_is_registered_and_exposed_to_rest(): void {
 		$this->assertTrue( post_type_exists( ItemPostType::POST_TYPE ) );
 
