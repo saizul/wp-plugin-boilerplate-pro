@@ -7,6 +7,7 @@ All notable changes are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- Integration test scaffold in `tests/Integration` that runs against a real WordPress through `@wordpress/env` (`.wp-env.json`, `npm run test:integration`), with tests for the post type, settings, shortcode, activation and the REST routes. A new `integration` CI job runs it. Unit tests are unchanged.
 - `wp-plugin-boilerplate-pro/items` Gutenberg block, registered from `blocks/items/block.json`. It is dynamic (server-rendered, no build step) and shares its list markup with the `[wppbp_items]` shortcode.
 - `Support\ItemsArgs`, a pure normaliser used by both the shortcode and the block, with unit tests.
 

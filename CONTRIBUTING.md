@@ -14,6 +14,7 @@ composer install
 
 ```bash
 composer test    # PHPUnit, runs without WordPress
+npm install && npm run test:integration   # integration tests in wp-env (needs Docker)
 composer lint    # PHPCS with WordPress Coding Standards
 find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
 ```

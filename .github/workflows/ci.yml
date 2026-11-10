@@ -46,3 +46,27 @@ jobs:
 
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: vendor/bin/phpcs
+
+  integration:
+    name: Integration tests (wp-env)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install wp-env
+        run: npm install --no-audit --no-fund
+
+      - name: Run the integration suite
+        run: bash bin/test-integration.sh
+
+      - name: Show the WordPress debug log on failure
+        if: failure()
+        run: npx wp-env run tests-cli cat wp-content/debug.log || true
+
+      - name: Stop wp-env
+        if: always()
+        run: npx wp-env destroy --force || true
