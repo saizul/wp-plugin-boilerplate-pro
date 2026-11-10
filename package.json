@@ -1,0 +1,13 @@
+{
+	"name": "wp-plugin-boilerplate-pro-dev",
+	"private": true,
+	"description": "Development tooling only (wp-env for integration tests). Not shipped in the release zip.",
+	"scripts": {
+		"env:start": "wp-env start",
+		"env:stop": "wp-env stop",
+		"test:integration": "bash bin/test-integration.sh"
+	},
+	"devDependencies": {
+		"@wordpress/env": "^10.0.0"
+	}
+}

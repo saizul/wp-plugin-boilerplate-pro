@@ -62,7 +62,9 @@ wp-plugin-boilerplate-pro/
 │   └── Support/                    Sanitizer, ItemsArgs (pure helpers)
 ├── tests/
 │   ├── bootstrap.php               no WordPress required
-│   └── Unit/                       ContainerTest, SanitizerTest, ItemsArgsTest, SchemaTest, RenamerTest
+│   ├── Unit/                       ContainerTest, SanitizerTest, ItemsArgsTest, SchemaTest, RenamerTest
+│   └── Integration/                real WordPress via wp-env (bootstrap, PluginBootTest, RestItemsTest)
+├── .wp-env.json
 ├── phpunit.xml.dist
 ├── phpcs.xml.dist
 └── .github/workflows/              ci.yml, release.yml
@@ -184,7 +186,24 @@ composer lint        # PHPCS
 composer lint:fix    # PHPCBF
 ```
 
-Without Composer you can still run the tests: `tests/bootstrap.php` falls back to a PSR-4 loader, so
+### Integration tests
+
+The integration suite boots a real WordPress with the WordPress test library inside
+[`@wordpress/env`](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/).
+You need Docker and Node 18+:
+
+```bash
+npm install
+npm run test:integration                              # start wp-env, install PHPUnit 9.6, run the suite
+npm run test:integration -- --filter RestItemsTest    # extra arguments go to PHPUnit
+npm run env:stop
+```
+
+`tests/Integration/composer.json` installs PHPUnit 9.6 and the Yoast polyfills separately from the root
+`composer.json`, because the WordPress test suite does not support PHPUnit 10+. The unit tests are not
+affected and still run with `composer test`. CI runs the same script in the `integration` job.
+
+Without Composer you can still run the unit tests: `tests/bootstrap.php` falls back to a PSR-4 loader, so
 `php phpunit.phar` works in a plain checkout.
 
 ## Releases
