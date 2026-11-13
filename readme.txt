@@ -19,6 +19,7 @@ WP Plugin Boilerplate Pro is a working example plugin meant to be copied and ren
 * Service providers that register services first and attach hooks second
 * A Settings API page with sanitisation, escaping, capability checks and nonces
 * A REST API endpoint with a permission callback, argument validation and a JSON schema
+* Settings export and import as JSON (REST and WP-CLI), with strict schema validation and a dry run
 * A shortcode, `[wppbp_items]`
 * A custom post type with registered meta
 * WP-CLI commands under `wp wppbp`
@@ -43,6 +44,10 @@ No. Composer generates an optimised autoloader, but the plugin falls back to a b
 = How do I use the REST endpoint? =
 
 `GET /wp-json/wp-plugin-boilerplate-pro/v1/items` lists published items. `POST` to the same URL requires a user who can publish posts.
+
+= How do I copy settings to another site? =
+
+Run `wp wppbp export-settings --file=settings.json` on the first site and `wp wppbp import-settings settings.json` on the second, or use `GET` and `POST` on `/wp-json/wp-plugin-boilerplate-pro/v1/settings` as an administrator. Add `--dry-run` (or `?dry_run=1`) to preview the changes. Invalid files are rejected and nothing is changed.
 
 = What happens to my data on uninstall? =
 

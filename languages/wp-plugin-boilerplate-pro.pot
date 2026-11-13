@@ -168,6 +168,18 @@ msgstr ""
 msgid "Unique identifier for the item."
 msgstr ""
 
+#: src/Rest/SettingsController.php:108
+msgid "Sorry, you are not allowed to manage these settings."
+msgstr ""
+
+#: src/Rest/SettingsController.php:162
+msgid "The settings could not be imported. Nothing was changed."
+msgstr ""
+
+#: src/Rest/SettingsController.php:84
+msgid "Validate and report changes without saving them."
+msgstr ""
+
 #. translators: %s: current PHP version.
 #: wp-plugin-boilerplate-pro.php:40
 msgid "WP Plugin Boilerplate Pro requires PHP 8.1 or higher. You are running PHP %s."

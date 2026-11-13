@@ -18,16 +18,17 @@ Built by [Saizul Amin](https://saizul.com).
 | DI container | `src/Container/` | `get`/`has`, shared and factory bindings, constructor auto-wiring, circular dependency detection |
 | Service providers | `src/Providers/` | `register()` binds services, `boot()` attaches hooks |
 | Settings page | `src/Admin/SettingsPage.php`, `src/Settings/` | Settings API, schema-driven sanitising, nonce-protected reset action |
-| REST API | `src/Rest/ItemsController.php` | `permission_callback` on every route, argument validation, JSON schema |
+| Settings import/export | `src/Settings/Transfer.php`, `src/Rest/SettingsController.php` | Versioned JSON envelope, strict schema validation, all-or-nothing imports, dry run, via REST and WP-CLI |
+| REST API | `src/Rest/` | `permission_callback` on every route, argument validation, JSON schema; admin-only `/settings` export/import |
 | Shortcode | `src/Shortcodes/ItemsShortcode.php` | `[wppbp_items count="5" layout="grid"]`, sanitised attributes, escaped output |
 | Block | `src/Blocks/ItemsBlock.php`, `blocks/items/` | Dynamic block from `block.json`, PHP `render_callback`, editor script without a build step |
 | Custom post type | `src/PostTypes/ItemPostType.php` | REST enabled, registered meta with sanitiser and auth callback |
-| WP-CLI | `src/Cli/ItemsCommand.php` | `wp wppbp list`, `create`, `cleanup`, `settings` |
+| WP-CLI | `src/Cli/ItemsCommand.php` | `wp wppbp list`, `create`, `cleanup`, `settings`, `export-settings`, `import-settings` |
 | Cron | `src/Cron/CleanupTask.php` | Self-healing schedule, cleared on deactivation |
 | i18n | `languages/*.pot`, `I18nProvider` | Text domain equals the plugin slug |
 | Uninstall | `uninstall.php` | Removes options and cron; deletes content only if the owner opted in |
 | Rename tool | `bin/rename.php`, `bin/Renamer.php` | Namespace, slug, text domain, prefix, constants, author |
-| Tests | `tests/Unit/` | Container, sanitisers, settings schema and renamer, no WordPress needed |
+| Tests | `tests/Unit/` | Container, sanitisers, settings schema, settings import/export and renamer, no WordPress needed |
 | Coding standards | `phpcs.xml.dist` | WordPress Coding Standards + PHPCompatibilityWP (8.1+) |
 | CI and releases | `.github/workflows/` | `php -l` + PHPUnit on 8.1, 8.2, 8.3; tagged releases build a clean zip |
 
@@ -52,8 +53,8 @@ wp-plugin-boilerplate-pro/
 │   ├── Container/                  Container, ContainerException, NotFoundException
 │   ├── Providers/                  ServiceProvider interface + 7 providers
 │   ├── Admin/SettingsPage.php
-│   ├── Settings/                   Schema (pure), Repository (get_option)
-│   ├── Rest/ItemsController.php
+│   ├── Settings/                   Schema, Transfer, ImportResult (pure), Repository (get_option)
+│   ├── Rest/                       ItemsController, SettingsController
 │   ├── Shortcodes/ItemsShortcode.php
 │   ├── Blocks/ItemsBlock.php       dynamic block, registered from blocks/items/block.json
 │   ├── PostTypes/ItemPostType.php
@@ -62,8 +63,8 @@ wp-plugin-boilerplate-pro/
 │   └── Support/                    Sanitizer, ItemsArgs (pure helpers)
 ├── tests/
 │   ├── bootstrap.php               no WordPress required
-│   ├── Unit/                       ContainerTest, SanitizerTest, ItemsArgsTest, SchemaTest, RenamerTest
-│   └── Integration/                real WordPress via wp-env (bootstrap, PluginBootTest, RestItemsTest)
+│   ├── Unit/                       ContainerTest, SanitizerTest, ItemsArgsTest, SchemaTest, TransferTest, RenamerTest
+│   └── Integration/                real WordPress via wp-env (bootstrap, PluginBootTest, RestItemsTest, RestSettingsTest)
 ├── .wp-env.json
 ├── phpunit.xml.dist
 ├── phpcs.xml.dist
@@ -168,6 +169,30 @@ curl https://example.com/wp-json/wp-plugin-boilerplate-pro/v1/items?per_page=5&s
 `POST /items` needs an authenticated user who can publish posts (cookie + `X-WP-Nonce`, or application
 passwords). Body: `title` (required), `content`, `url`.
 
+### Settings export and import
+
+Both routes require `manage_options`.
+
+```bash
+# Export: a versioned envelope with every setting.
+curl --user "$WP_USER:$WP_APP_PASSWORD" https://example.com/wp-json/wp-plugin-boilerplate-pro/v1/settings
+# {"format":"wppbp-settings","format_version":1,"plugin_version":"1.0.0","settings":{"enabled":true,...}}
+
+# Import: the envelope above, or a partial object. Add ?dry_run=1 to only report the changes.
+curl --user "$WP_USER:$WP_APP_PASSWORD" -H 'Content-Type: application/json' \
+     -d '{"layout":"grid","items_per_page":20}' \
+     'https://example.com/wp-json/wp-plugin-boilerplate-pro/v1/settings?dry_run=1'
+# {"dry_run":true,"updated":false,"changes":{"layout":{"from":"list","to":"grid"},...},"settings":{...}}
+```
+
+Imports are validated strictly by `Settings\Schema::validate()`: unknown keys, wrong types (`"10"` for an
+integer, `1` for a boolean), out-of-range numbers, unknown layouts and invalid email addresses are
+rejected instead of being coerced the way the settings form does. Settings that are left out keep their
+current value. If anything is invalid the response is `400` with `code: wppbp_invalid_settings` and the
+messages in `data.errors`, and nothing is saved. Exports from a newer `format_version` are refused, and
+documents larger than 64 KB are rejected before decoding. The merge and validation logic lives in the
+pure `Settings\Transfer` class, so it is fully covered by unit tests.
+
 ## WP-CLI
 
 ```bash
@@ -175,7 +200,12 @@ wp wppbp list --format=json
 wp wppbp create "My first item" --porcelain
 wp wppbp cleanup
 wp wppbp settings
+wp wppbp export-settings --file=settings.json
+wp wppbp import-settings settings.json --dry-run      # validate and list the changes
+echo '{"layout":"grid"}' | wp wppbp import-settings -   # "-" reads from standard input
 ```
+
+`import-settings` uses the same validation as the REST route and prints a table of changed values.
 
 ## Development
 

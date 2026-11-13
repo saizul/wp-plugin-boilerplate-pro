@@ -11,6 +11,8 @@ namespace SaizulAmin\PluginBoilerplate\Providers;
 
 use SaizulAmin\PluginBoilerplate\Cli\ItemsCommand;
 use SaizulAmin\PluginBoilerplate\Container\Container;
+use SaizulAmin\PluginBoilerplate\Cron\CleanupTask;
+use SaizulAmin\PluginBoilerplate\Settings\Repository;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -27,7 +29,14 @@ class CliProvider implements ServiceProvider {
 	 * @param Container $container Container.
 	 */
 	public function register( Container $container ): void {
-		$container->singleton( ItemsCommand::class );
+		$container->singleton(
+			ItemsCommand::class,
+			static fn( Container $c ) => new ItemsCommand(
+				$c->get( Repository::class ),
+				$c->get( CleanupTask::class ),
+				(string) $c->get( 'plugin.version' )
+			)
+		);
 	}
 
 	/**

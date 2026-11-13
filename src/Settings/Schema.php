@@ -96,4 +96,72 @@ final class Schema {
 
 		return $clean;
 	}
+
+	/**
+	 * Strictly validate values without coercing them. Used for imports, where silently clamping or
+	 * replacing a value would hide a mistake. Only the keys present in $input are checked, so a
+	 * partial set of settings is valid.
+	 *
+	 * @param array<array-key, mixed> $input Values keyed by setting key.
+	 * @return array<string, string> Error message keyed by setting key; empty when everything is valid.
+	 */
+	public static function validate( array $input ): array {
+		$fields = self::fields();
+		$errors = array();
+
+		foreach ( $input as $key => $value ) {
+			$key = (string) $key;
+
+			if ( ! isset( $fields[ $key ] ) ) {
+				$errors[ $key ] = 'Unknown setting.';
+				continue;
+			}
+
+			$error = self::validate_field( $fields[ $key ], $value );
+			if ( null !== $error ) {
+				$errors[ $key ] = $error;
+			}
+		}
+
+		return $errors;
+	}
+
+	/**
+	 * Validate one value against its field definition.
+	 *
+	 * @param array<string, mixed> $field Field definition from fields().
+	 * @param mixed                $value Value to check.
+	 * @return string|null Error message, or null when the value is valid.
+	 */
+	private static function validate_field( array $field, mixed $value ): ?string {
+		switch ( $field['type'] ) {
+			case 'bool':
+				return is_bool( $value ) ? null : 'Must be true or false.';
+
+			case 'int':
+				if ( ! is_int( $value ) ) {
+					return 'Must be an integer.';
+				}
+				if ( $value < (int) $field['min'] || $value > (int) $field['max'] ) {
+					return sprintf( 'Must be between %d and %d.', (int) $field['min'], (int) $field['max'] );
+				}
+				return null;
+
+			case 'enum':
+				return is_string( $value ) && in_array( $value, $field['choices'], true )
+					? null
+					: sprintf( 'Must be one of: %s.', implode( ', ', $field['choices'] ) );
+
+			case 'email':
+				if ( ! is_string( $value ) ) {
+					return 'Must be a string.';
+				}
+				return '' === $value || Sanitizer::email( $value ) === $value
+					? null
+					: 'Must be a valid email address or an empty string.';
+
+			default:
+				return is_string( $value ) ? null : 'Must be a string.';
+		}//end switch
+	}
 }

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace SaizulAmin\PluginBoilerplate\Tests\Unit;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use SaizulAmin\PluginBoilerplate\Settings\Schema;
 
@@ -75,5 +76,75 @@ final class SchemaTest extends TestCase {
 
 	public function test_explicit_empty_text_stays_empty(): void {
 		$this->assertSame( '', Schema::sanitize( array( 'greeting' => '' ) )['greeting'] );
+	}
+
+	public function test_validate_accepts_defaults(): void {
+		$this->assertSame( array(), Schema::validate( Schema::defaults() ) );
+	}
+
+	public function test_validate_accepts_a_partial_set(): void {
+		$this->assertSame( array(), Schema::validate( array( 'layout' => 'grid' ) ) );
+		$this->assertSame( array(), Schema::validate( array() ) );
+	}
+
+	public function test_validate_rejects_unknown_keys(): void {
+		$this->assertSame( array( 'evil' => 'Unknown setting.' ), Schema::validate( array( 'evil' => 'x' ) ) );
+	}
+
+	/**
+	 * @return array<string, array{0: string, 1: mixed}>
+	 */
+	public static function invalidValueProvider(): array {
+		return array(
+			'bool as string'     => array( 'enabled', '1' ),
+			'bool as int'        => array( 'enabled', 1 ),
+			'int as string'      => array( 'items_per_page', '10' ),
+			'int as float'       => array( 'items_per_page', 10.0 ),
+			'int below minimum'  => array( 'items_per_page', 0 ),
+			'int above maximum'  => array( 'retention_days', 366 ),
+			'enum not a choice'  => array( 'layout', 'carousel' ),
+			'enum wrong case'    => array( 'layout', 'Grid' ),
+			'enum not a string'  => array( 'layout', 1 ),
+			'email invalid'      => array( 'contact_email', 'nope' ),
+			'email with spaces'  => array( 'contact_email', ' a@example.com ' ),
+			'email not a string' => array( 'contact_email', array( 'a@example.com' ) ),
+			'text not a string'  => array( 'greeting', 42 ),
+			'text null'          => array( 'greeting', null ),
+		);
+	}
+
+	#[DataProvider( 'invalidValueProvider' )]
+	public function test_validate_rejects_invalid_values( string $key, mixed $value ): void {
+		$errors = Schema::validate( array( $key => $value ) );
+
+		$this->assertArrayHasKey( $key, $errors );
+		$this->assertCount( 1, $errors );
+	}
+
+	public function test_validate_reports_ranges_and_choices(): void {
+		$errors = Schema::validate(
+			array(
+				'items_per_page' => 500,
+				'layout'         => 'carousel',
+			)
+		);
+
+		$this->assertSame( 'Must be between 1 and 100.', $errors['items_per_page'] );
+		$this->assertSame( 'Must be one of: list, grid.', $errors['layout'] );
+	}
+
+	public function test_validate_accepts_boundaries_and_empty_email(): void {
+		$this->assertSame(
+			array(),
+			Schema::validate(
+				array(
+					'items_per_page' => 100,
+					'retention_days' => 1,
+					'contact_email'  => '',
+					'enabled'        => false,
+				)
+			)
+		);
+		$this->assertSame( array(), Schema::validate( array( 'contact_email' => 'owner@example.com' ) ) );
 	}
 }
