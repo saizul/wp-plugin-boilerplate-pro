@@ -53,6 +53,16 @@ class Repository {
 	}
 
 	/**
+	 * Store a complete set of settings. Values are sanitised again, so callers cannot store
+	 * anything the schema would not accept.
+	 *
+	 * @param array<string, mixed> $settings Settings to store.
+	 */
+	public function replace( array $settings ): void {
+		update_option( self::OPTION, Schema::sanitize( array_merge( Schema::defaults(), $settings ) ) );
+	}
+
+	/**
 	 * Restore defaults.
 	 */
 	public function reset(): void {
